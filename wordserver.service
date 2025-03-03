@@ -1,0 +1,19 @@
+# This file is for restarting the server on startup in case the Pi shuts down
+# Using root to access port 443, might change later to something less ugly
+
+[Unit]
+Description=Simple word-stat server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/gossip
+ExecStart=/root/gossip/gossip
+User=root
+Group=root
+StandardOutput = journal
+StandardError = journal
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
