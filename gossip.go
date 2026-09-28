@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,11 @@ type (
 	TopElements struct {
 		Count   uint64    `json:"count"`
 		Element [128]byte `json:"element"`
+	}
+
+	TopElementJSON struct {
+		Count   uint64 `json:"count"`
+		Element string `json:"element"`
 	}
 
 	CMSketch      [131072]uint64  // w = 2^15 d = 4
@@ -163,6 +169,11 @@ func (s *SketchSet) Write(filename string) {
 	file, _ := os.Create(filename)
 	gob.NewEncoder(file).Encode(s)
 	file.Close()
+}
+
+func (t TopElements) MarshalJSON() ([]byte, error) {
+	var trimmed string = string(bytes.TrimRight(t.Element[:], "\x00"))
+	return json.Marshal(TopElementJSON{Count: t.Count, Element: trimmed})
 }
 
 func (d *DistributionSet) ServeHTTP(w http.ResponseWriter, r *http.Request) {
