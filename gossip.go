@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -154,13 +155,13 @@ func (s *SketchSet) Add(data *[]byte) uint64 {
 
 func (s *SketchSet) Read(filename string) {
 	file, _ := os.Open(filename)
-	json.NewDecoder(file).Decode(s)
+	gob.NewDecoder(file).Decode(s)
 	file.Close()
 }
 
 func (s *SketchSet) Write(filename string) {
 	file, _ := os.Create(filename)
-	json.NewEncoder(file).Encode(*s)
+	gob.NewEncoder(file).Encode(s)
 	file.Close()
 }
 
@@ -198,14 +199,14 @@ func main() {
 	var mainDB SketchSet
 	var topDB TopSet = TopSet{TOP: &mainDB.TOP}
 	var dstDB DistributionSet = DistributionSet{Distribution: &mainDB.DST, hll: &mainDB.HLL}
-	mainDB.Read("sketch.json")   // load previously saved db
+	mainDB.Read("sketch.gob")    // load previously saved db
 	mux := http.NewServeMux()    // create routes for below paths
 	mux.Handle("/item", &mainDB) // add element and serve count for /item
 	mux.Handle("/dist", &dstDB)  // serve dist for /dist
 	mux.Handle("/", &topDB)      // serve top16 for everything else
 	go func() {
 		for {
-			mainDB.Write("sketch.json")
+			mainDB.Write("sketch.gob")
 			time.Sleep(2 * time.Minute)
 		}
 	}()
